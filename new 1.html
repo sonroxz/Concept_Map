@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Mind Map</title>
+    <style>
+        :root {
+            --title-font-size: 21px;
+            --description-font-size: 18px;
+			 --main-font-size: 36px;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            background: url('file:///C:/Users/ADMIN/OneDrive/Desktop/Concept%20Map/images/Untitled%20design.jpg') no-repeat center center;
+            background-size: cover;
+			font-family: Arial, sans-serif;
+			overflow: hidden;
+			position: relative;
+        }
+        .mindmap {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            z-index: 1;
+        }
+        .node {
+            position: absolute;
+            padding: 10px 15px;
+            background: #ffcccb;
+            border-radius: 20px;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            transition: all 0.6s ease;
+            opacity: 1;
+            transform: scale(1);
+            z-index: 1;
+            overflow: hidden;
+            display: inline-block;
+			white-space: nowrap;
+        }
+		#node1 { width: 160px; }
+        #node2 { width: 320px; }
+        #node3 { width: 310px; }
+        #node4 { width: 280px; }
+        #node5 { width: 310px; }
+		
+        .title {
+            font-size: var(--title-font-size);
+            font-weight: bold;
+            line-height: 1.2;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            text-align: center;
+        }
+        .description {
+            font-size: var(--description-font-size);
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.6s ease, opacity 0.6s ease;
+            opacity: 0;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        .expanded {
+            width: 300px !important;
+            padding: 30px;
+            white-space: pre-line;
+        }
+        .expanded .description {
+            max-height: 500px;
+            opacity: 1;
+            white-space: pre-line;
+        }
+        .node:not(.expanded):hover {
+            transform: scale(1.1);
+        }
+        .hidden {
+            opacity: 0;
+            transform: scale(0);
+            pointer-events: none;
+        }
+        svg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+        line {
+            transition: opacity 0.6s;
+            stroke: #999;
+            stroke-width: 2;
+        }
+        .line-hidden {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+<div class="mindmap">
+    <svg id="lines"></svg>
+    <div class="node" id="main" style="top: 40%; left: 37%; font-size: 30px;">Threats of Climate-Change <br> on the Indigenous Communities</div>
+
+    <div class="node hidden" id="node1" data-parent="main" style="top: 20%; left: 10%">
+        <div class="title">Water Scarcity</div>
+        <div class="description">Climate change can exacerbate water shortages, affecting access to clean drinking water and impacting agricultural practices.</div>
+    </div>
+    <div class="node hidden" id="node2" data-parent="main" style="top: 20%; left: 70%">
+        <div class="title">Food Insecurity and Malnutrition</div>
+        <div class="description">Loss of traditional food sources can lead to malnutrition, increasing the risk of various health issues, including diabetes and obesity.</div>
+    </div>
+    <div class="node hidden" id="node3" data-parent="main" style="top: 58%; left: 70%">
+        <div class="title">Lack of Access to Resources <br>
+		and Services</div>
+        <div class="description">Limited access to healthcare, infrastructure, and other essential services can hinder their ability to adapt to climate change</div>
+    </div>
+    <div class="node hidden" id="node4" data-parent="main" style="top: 60%; left: 10%">
+        <div class="title">Displacement and Migration</div>
+        <div class="description">Extreme weather events may force communities to relocate, leading to loss of cultural identity and social cohesion.</div>
+    </div>
+    <div class="node hidden" id="node5" data-parent="main" style="top: 70%; left: 40%">
+        <div class="title">Loss of Traditional Knowledge</div>
+        <div class="description">Climate change can disrupt traditional practices and knowledge systems passed down through generations.
+</div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const nodes = [...document.querySelectorAll(".node")];
+        const svg = document.getElementById("lines");
+        const originalCenters = {};
+
+        function storeOriginalCenters() {
+            nodes.forEach(node => {
+                const rect = node.getBoundingClientRect();
+                originalCenters[node.id] = {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2
+                };
+            });
+        }
+
+        function createLines() {
+            nodes.forEach(node => {
+                const parentId = node.dataset.parent;
+                if (parentId) {
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("id", `line_${node.id}`);
+                    svg.appendChild(line);
+                }
+            });
+            updateLines();
+        }
+
+        function updateLines() {
+            nodes.forEach(node => {
+                const parentId = node.dataset.parent;
+                if (parentId) {
+                    const parentCenter = originalCenters[parentId];
+                    const nodeCenter = originalCenters[node.id];
+                    const svgRect = svg.getBoundingClientRect();
+                    const line = document.getElementById(`line_${node.id}`);
+
+                    line.setAttribute("x1", parentCenter.x - svgRect.left);
+                    line.setAttribute("y1", parentCenter.y - svgRect.top);
+                    line.setAttribute("x2", nodeCenter.x - svgRect.left);
+                    line.setAttribute("y2", nodeCenter.y - svgRect.top);
+
+                    if (node.classList.contains("hidden")) {
+                        line.classList.add("line-hidden");
+                    } else {
+                        line.classList.remove("line-hidden");
+                    }
+                }
+            });
+        }
+
+        function toggleNode(id) {
+            const el = document.getElementById(id);
+            const line = document.getElementById(`line_${id}`);
+            if (el.classList.contains("hidden")) {
+                el.classList.remove("hidden");
+                line.classList.remove("line-hidden");
+            } else {
+                el.classList.add("hidden");
+                line.classList.add("line-hidden");
+            }
+            updateLines();
+        }
+
+        document.getElementById("main").addEventListener("click", () => {
+            ["node1","node2","node3","node4","node5"].forEach(id => setTimeout(() => toggleNode(id), 0));
+        });
+
+        ["node1","node2","node3","node4","node5"].forEach(id => {
+            const node = document.getElementById(id);
+            node.addEventListener("click", (e) => {
+                e.stopPropagation();
+                if (!node.classList.contains("expanded")) {
+                    node.classList.add("expanded");
+                } else {
+                    node.classList.remove("expanded");
+                }
+            });
+        });
+
+        window.addEventListener("resize", () => {
+            storeOriginalCenters();
+            updateLines();
+        });
+
+        storeOriginalCenters();
+        createLines();
+    });
+</script>
+</body>
+</html>
